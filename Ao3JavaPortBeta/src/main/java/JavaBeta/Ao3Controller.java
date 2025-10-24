@@ -32,6 +32,7 @@ public class Ao3Controller {
     // --- FXML UI Elements ---
     @FXML private TextField anyField, titleField, authorField, tagsField;
     @FXML private Button searchButton, refreshLibraryButton;
+    @FXML private Button clearButton; // Variable for the Clear button added
     @FXML private ProgressIndicator loadingIndicator;
     @FXML private ListView<Work> resultsListView;
     @FXML private TabPane mainTabPane;
@@ -91,8 +92,21 @@ public class Ao3Controller {
     }
 
     /**
-     * Updated method: Fetches story content AND passes the Work object to the reader window.
+     * Clears the text from all search input fields.
      */
+    @FXML
+    protected void onClearButtonClick() {
+        // Clear text fields
+        anyField.clear();
+        titleField.clear();
+        authorField.clear();
+        tagsField.clear();
+
+        // Clear the search results list
+        resultsListView.getItems().clear();
+    }
+
+
     private void loadAndShowStory(Work work) {
         Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION);
         loadingAlert.setTitle("Loading Story");
@@ -113,9 +127,6 @@ public class Ao3Controller {
         new Thread(task).start();
     }
 
-    /**
-     * Updated method: Reads a story from a local file and tells the reader window it's offline.
-     */
     private void loadStoryFromLibrary(File file) {
         try {
             String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
@@ -127,10 +138,6 @@ public class Ao3Controller {
         }
     }
 
-    /**
-     * Overloaded method to launch the reader window for ONLINE stories.
-     * Passes the Work object to the ReadingController.
-     */
     private void launchReadingWindow(Work work, String content) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaBeta/ReadingView.fxml"));
@@ -143,7 +150,6 @@ public class Ao3Controller {
             if (stylesheetUrl != null) scene.getStylesheets().add(stylesheetUrl.toExternalForm());
             readerStage.setScene(scene);
 
-            // Set title and pass Work object + content to the ReadingController
             readerStage.setTitle(work.getTitle());
             readingController.loadStory(work, content); // Call the correct loadStory method
 
@@ -156,10 +162,6 @@ public class Ao3Controller {
         }
     }
 
-    /**
-     * Overloaded method to launch the reader window for OFFLINE stories.
-     * Passes the 'isOffline' flag to the ReadingController.
-     */
     private void launchReadingWindow(String title, String content, boolean isOffline) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaBeta/ReadingView.fxml"));
@@ -172,7 +174,6 @@ public class Ao3Controller {
             if (stylesheetUrl != null) scene.getStylesheets().add(stylesheetUrl.toExternalForm());
             readerStage.setScene(scene);
 
-            // Set title and pass title, content, and offline flag to the ReadingController
             readerStage.setTitle(title);
             readingController.loadStory(title, content, isOffline); // Call the correct loadStory method
 
@@ -285,10 +286,9 @@ public class Ao3Controller {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Credits");
         alert.setHeaderText("AO3 Reader Application");
-        alert.setContentText("Developed by:\n" +
+        alert.setContentText("Developed by: [Your Name/Handle Here]\n" +
                 "Using JavaFX and Jsoup.\n\n" +
                 "Thanks for using the app!");
-        // Optional: Add more details like version number, etc.
         alert.showAndWait();
     }
 }

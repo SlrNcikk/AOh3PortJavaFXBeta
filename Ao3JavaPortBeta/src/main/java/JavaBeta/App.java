@@ -20,6 +20,8 @@ public class App extends Application {
         if (fxmlLocation == null) {
             System.err.println("CRITICAL ERROR: Cannot find FXML file. Path: /JavaBeta/main-view.fxml");
             return;
+
+
         }
 
         // Use FXMLLoader instance to get the controller
