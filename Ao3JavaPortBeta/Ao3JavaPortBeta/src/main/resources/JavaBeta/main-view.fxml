@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox prefHeight="600.0" prefWidth="800.0" spacing="10.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaBeta.Ao3Controller">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+    <children>
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <tabs>
+                <Tab text="Online Search">
+                    <VBox spacing="10.0">
+                        <padding><Insets top="10.0" /></padding>
+                        <children>
+                            <GridPane hgap="10.0" vgap="5.0">
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                </columnConstraints>
+                                <children>
+                                    <Label text="Any Field:" GridPane.rowIndex="0"><font><Font name="System Bold" size="12.0" /></font></Label>
+                                    <TextField fx:id="anyField" prefWidth="442.0" promptText="Search title, author, summary, etc." GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                    <Label text="Title:" GridPane.rowIndex="1" />
+                                    <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="Author:" GridPane.rowIndex="2" />
+                                    <TextField fx:id="authorField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label text="Tags:" GridPane.rowIndex="3" />
+                                    <TextField fx:id="tagsField" promptText="e.g., Fluff, Angst" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                </children>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                </rowConstraints>
+                            </GridPane>
+                            <HBox spacing="10.0">
+                                <children>
+                                    <Button fx:id="searchButton" onAction="#onSearchButtonClick" prefHeight="25.0" text="Search" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Button fx:id="clearButton" onAction="#onClearButtonClick" mnemonicParsing="false" prefHeight="25.0" prefWidth="66.0" text="Clear" />
+                                </children>
+                            </HBox>
+                            <Label text="Click a story in the list below to open it in the reader." />
+                            <StackPane VBox.vgrow="ALWAYS">
+                                <children>
+                                    <ListView fx:id="resultsListView" />
+                                    <ProgressIndicator fx:id="loadingIndicator" visible="false" />
+                                </children>
+                            </StackPane>
+                        </children>
+                    </VBox>
+                </Tab>
+
+                <Tab text="Offline Library">
+                    <VBox spacing="10.0">
+                        <padding><Insets top="10.0" /></padding>
+                        <children>
+                            <Button fx:id="refreshLibraryButton" maxWidth="Infinity" onAction="#onRefreshLibraryClick" text="Refresh Library" />
+                            <Label text="Click a story in your library to open it in the reader." />
+                            <ListView fx:id="libraryListView" VBox.vgrow="ALWAYS" />
+                        </children>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </children>
+</VBox>
