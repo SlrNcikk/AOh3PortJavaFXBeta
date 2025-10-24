@@ -1,0 +1,16 @@
+/* Default Theme (matches system default) */
+.text-area .content {
+    -fx-background-color: white;
+}
+
+/* Sepia Theme */
+.text-area-sepia .content {
+    -fx-background-color: #fbf0d9;
+    -fx-text-fill: #5b4636;
+}
+
+/* Dark Mode Theme */
+.text-area-dark .content {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #dcdcdc;
+}
