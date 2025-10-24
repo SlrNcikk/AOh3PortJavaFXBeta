@@ -14,3 +14,76 @@
     -fx-background-color: #1e1e1e;
     -fx-text-fill: #dcdcdc;
 }
+
+/* Dark Theme */
+.root {
+    /* Base background color */
+    -fx-base: #2b2b2b;
+    -fx-background: #2b2b2b;
+    /* Control colors */
+    -fx-control-inner-background: #3c3f41;
+    /* Text colors */
+    -fx-text-background-color: #bbbbbb;
+    -fx-text-fill: #bbbbbb; /* Ensure text fill matches */
+}
+
+/* Specific control adjustments */
+.label {
+    -fx-text-fill: #bbbbbb;
+}
+
+.button {
+    -fx-background-color: #4e5254;
+    -fx-text-fill: white;
+}
+.button:hover {
+    -fx-background-color: #5f6365;
+}
+
+.text-field {
+    -fx-text-fill: #bbbbbb;
+    -fx-prompt-text-fill: #777777;
+}
+
+.list-view {
+    -fx-control-inner-background: #3c3f41;
+}
+.list-cell {
+    -fx-text-fill: #bbbbbb;
+}
+.list-cell:filled:selected {
+    -fx-background-color: #0d47a1; /* Dark blue selection */
+    -fx-text-fill: white;
+}
+.list-cell:filled:hover {
+    -fx-background-color: #5f6365;
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #2b2b2b;
+}
+.tab {
+    -fx-background-color: #3c3f41;
+}
+.tab:selected {
+    -fx-background-color: #4e5254;
+}
+.tab .tab-label {
+    -fx-text-fill: #bbbbbb;
+}
+
+.text-area .content {
+    -fx-background-color: #3c3f41;
+    -fx-text-fill: #bbbbbb;
+}
+
+/* Reading Window Themes (Keep these for the reader) */
+.text-area-sepia .content {
+    -fx-background-color: #fbf0d9;
+    -fx-text-fill: #5b4636;
+}
+.text-area-dark .content {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #dcdcdc;
+}

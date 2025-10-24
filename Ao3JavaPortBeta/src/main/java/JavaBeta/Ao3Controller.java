@@ -40,6 +40,44 @@ public class Ao3Controller {
 
     private Path libraryPath;
 
+    @FXML private ToggleButton themeToggleButton;
+
+    private String darkThemePath;
+
+    @FXML
+    protected void onThemeToggle() {
+        Scene scene = mainTabPane.getScene(); // Get the scene from any known control
+        if (scene == null) {
+            System.err.println("Error: Could not get scene to toggle theme.");
+            return;
+        }
+
+        // Initialize the path if it's not already set
+        if (darkThemePath == null) {
+            URL stylesheetUrl = getClass().getResource("/JavaBeta/styles.css"); // Or styles.css
+            if (stylesheetUrl != null) {
+                darkThemePath = stylesheetUrl.toExternalForm();
+            } else {
+                showError("Could not find the theme stylesheet!");
+                themeToggleButton.setDisable(true); // Disable button if CSS is missing
+                return;
+            }
+        }
+
+        // Check if the button is selected (meaning dark mode should be ON)
+        if (themeToggleButton.isSelected()) {
+            // Add the dark theme stylesheet
+            scene.getStylesheets().add(darkThemePath);
+            themeToggleButton.setText("Light Mode"); // Update button text
+            System.out.println("DEBUG: Dark theme applied.");
+        } else {
+            // Remove the dark theme stylesheet
+            scene.getStylesheets().remove(darkThemePath);
+            themeToggleButton.setText("Dark Mode"); // Update button text
+            System.out.println("DEBUG: Dark theme removed.");
+        }
+    }
+
     @FXML
     public void initialize() {
         try {

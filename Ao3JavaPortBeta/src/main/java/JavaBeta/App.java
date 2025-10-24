@@ -20,29 +20,27 @@ public class App extends Application {
         if (fxmlLocation == null) {
             System.err.println("CRITICAL ERROR: Cannot find FXML file. Path: /JavaBeta/main-view.fxml");
             return;
-
-
         }
 
-        // Use FXMLLoader instance to get the controller
         FXMLLoader loader = new FXMLLoader(fxmlLocation);
         Parent root = loader.load();
-        Ao3Controller controller = loader.getController(); // Get the controller instance
+        Scene scene = new Scene(root, 800, 600);
 
-        Scene scene = new Scene(root, 800, 600); // Or your preferred size
+        // --- APPLY STYLESHEET ---
+        // Choose the correct path based on Option A or B from Step 1
+        URL stylesheetUrl = getClass().getResource("/JavaBeta/dark-theme.css"); // Or "/JavaBeta/styles.css"
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            System.out.println("DEBUG: Dark theme applied."); // For confirmation
+        } else {
+            System.err.println("Warning: Could not find the stylesheet.");
+        }
+        // --- END APPLY STYLESHEET ---
 
-        // --- Easter Egg Logic ---
-        // Define the key combination (Ctrl + W)
-        KeyCombination ctrlW = new KeyCodeCombination(KeyCode.W, KeyCombination.CONTROL_DOWN);
+        stage.setTitle("Ao3JavaFXPortBeta");
+        stage.setScene(scene);
+        stage.show();
 
-        // Add an event handler to the scene
-        scene.setOnKeyPressed(event -> {
-            if (ctrlW.match(event)) {
-                System.out.println("DEBUG: Ctrl+W pressed!"); // For testing
-                controller.showCredits(); // Call the method in the controller
-                event.consume(); // Prevent further processing of the key event
-            }
-        });
         // --- End Easter Egg Logic ---
 
         stage.setTitle("Ao3JavaFXPortBeta");
