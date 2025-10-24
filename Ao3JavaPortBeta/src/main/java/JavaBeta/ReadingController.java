@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextArea;
+import javafx.scene.web.WebView; // Import WebView
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -16,15 +16,41 @@ import java.nio.file.Paths;
 public class ReadingController {
 
     @FXML private ChoiceBox<String> themeChoiceBox;
-    @FXML private TextArea storyTextArea;
-    @FXML private Button downloadButton; // Added button variable
+    @FXML private WebView storyWebView; // Correctly declared as WebView
+    @FXML private Button downloadButton;
 
-    private final String[] themeClasses = {"text-area-sepia", "text-area-dark"};
+    // Base HTML structure with placeholders for theme class and content
+    private final String HTML_TEMPLATE = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { margin: 20px; font-family: sans-serif; }
+                .default { background-color: white; color: black; }
+                .sepia { background-color: #fbf0d9; color: #5b4636; }
+                .dark { background-color: #1e1e1e; color: #dcdcdc; }
+                /* Basic AO3 styles */
+                p { margin-bottom: 1em; line-height: 1.5; }
+                h1, h2, h3, h4, h5, h6 { margin-top: 1.5em; margin-bottom: 0.5em; }
+                hr { border: none; border-top: 1px solid #ccc; margin: 2em 0; }
+                em { font-style: italic; }
+                strong { font-weight: bold; }
+                blockquote { margin-left: 2em; padding-left: 1em; border-left: 3px solid #ccc; }
+                a { color: #990000; text-decoration: none; } /* Basic link styling */
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body class="%s">
+            %s
+        </body>
+        </html>
+        """;
 
-    // Variables to store story details for downloading
     private String storyTitle;
-    private String storyAuthor; // We'll get this from the Work object later
-    private boolean isOfflineStory = false; // Flag to disable download for library stories
+    private String storyAuthor;
+    private String rawHtmlContent; // Store the raw scraped HTML
+    private boolean isOfflineStory = false;
 
     @FXML
     public void initialize() {
@@ -33,85 +59,117 @@ public class ReadingController {
         themeChoiceBox.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldTheme, newTheme) -> updateTheme(newTheme)
         );
-
-        // Initially disable download button
         downloadButton.setDisable(true);
+        // Basic WebView setup if needed (e.g., disable context menu)
+        storyWebView.setContextMenuEnabled(false);
     }
 
-    /**
-     * Updated method to receive Work object for online stories.
-     */
-    public void loadStory(Work work, String content) {
+    // Load method for ONLINE stories (receives Work object)
+    public void loadStory(Work work, String htmlContent) {
         this.storyTitle = work.getTitle();
         this.storyAuthor = work.getAuthor();
-        this.isOfflineStory = false; // This is an online story
+        this.rawHtmlContent = htmlContent; // Store the raw HTML
+        this.isOfflineStory = false;
 
-        Stage stage = (Stage) storyTextArea.getScene().getWindow();
+        Stage stage = getStage();
         if (stage != null) stage.setTitle(storyTitle);
 
-        storyTextArea.setText(content);
-        downloadButton.setDisable(false); // Enable download for online stories
+        updateWebViewContent("default"); // Load content with default theme
+        downloadButton.setDisable(false); // Enable download
     }
 
-    /**
-     * Updated method for offline stories (disables download).
-     */
-    public void loadStory(String title, String content, boolean isOffline) {
+    // Load method for OFFLINE stories (receives title, file content, flag)
+    public void loadStory(String title, String fileContent, boolean isOffline) {
         this.storyTitle = title;
-        this.storyAuthor = "Unknown"; // Author info isn't stored in the filename
+        this.storyAuthor = "Unknown"; // Author info not stored offline
+        // Assume file content is raw HTML if it's likely HTML
+        if (fileContent != null && (fileContent.trim().toLowerCase().startsWith("<!doctype") || fileContent.trim().startsWith("<p"))) {
+            this.rawHtmlContent = fileContent;
+        } else if (fileContent != null) {
+            // If it looks like plain text, wrap it in basic HTML
+            this.rawHtmlContent = "<p>" + fileContent.replace("\n", "</p><p>") + "</p>";
+        } else {
+            this.rawHtmlContent = "<html><body>Error: Could not load content.</body></html>";
+        }
         this.isOfflineStory = isOffline;
 
-        Stage stage = (Stage) storyTextArea.getScene().getWindow();
-        if (stage != null) stage.setTitle(storyTitle);
+        Stage stage = getStage();
+        if (stage != null) stage.setTitle(title);
 
-        storyTextArea.setText(content);
-        downloadButton.setDisable(isOfflineStory); // Disable download for offline stories
+        updateWebViewContent("default"); // Load content with default theme
+        downloadButton.setDisable(true); // Disable download for offline stories
     }
 
     @FXML
     protected void onDownloadButtonClick() {
-        if (isOfflineStory || storyTitle == null || storyAuthor == null || storyTextArea.getText().isEmpty()) {
-            showError("Cannot download this story.");
+        if (isOfflineStory || storyTitle == null || storyAuthor == null || rawHtmlContent == null || rawHtmlContent.isEmpty()) {
+            showError("Cannot download this story (it might be offline or not fully loaded).");
             return;
         }
 
-        // Define the library path (same logic as in Ao3Controller)
-        Path libraryPath;
-        try {
-            libraryPath = Paths.get(System.getProperty("user.home"), "AO3_Offline_Library");
-            if (!Files.exists(libraryPath)) {
-                Files.createDirectories(libraryPath);
-            }
-        } catch (IOException e) {
-            showError("Could not access library directory: " + e.getMessage());
-            return;
-        }
+        Path libraryPath = getLibraryPath();
+        if (libraryPath == null) return; // Error shown in helper
 
-        // Create filename (same logic as before)
+        // Save as .html
         String safeTitle = storyTitle.replaceAll("[\\\\/:*?\"<>|]", "_");
-        String fileName = safeTitle + " - " + storyAuthor + ".txt";
+        String fileName = safeTitle + " - " + storyAuthor + ".html"; // Save as .html
         Path filePath = libraryPath.resolve(fileName);
 
         try {
-            Files.writeString(filePath, storyTextArea.getText(), StandardCharsets.UTF_8);
-            showInfo("Download Complete!", "Saved '" + fileName + "' to your offline library.");
-            // Optionally, disable the button after successful download
-            // downloadButton.setDisable(true);
+            // Write the raw HTML content to the file
+            Files.writeString(filePath, rawHtmlContent, StandardCharsets.UTF_8);
+            showInfo("Download Complete!", "Saved '" + fileName + "' as HTML to your offline library.");
+            // Consider disabling button after save if desired: downloadButton.setDisable(true);
         } catch (IOException e) {
             showError("Could not save file: " + e.getMessage());
         }
     }
 
     private void updateTheme(String themeName) {
-        storyTextArea.getStyleClass().removeAll(themeClasses);
+        String themeClass = "default"; // Default CSS class name in HTML_TEMPLATE
         if ("Sepia".equals(themeName)) {
-            storyTextArea.getStyleClass().add("text-area-sepia");
+            themeClass = "sepia";
         } else if ("Dark Mode".equals(themeName)) {
-            storyTextArea.getStyleClass().add("text-area-dark");
+            themeClass = "dark";
+        }
+        updateWebViewContent(themeClass); // Reload content with the new theme class
+    }
+
+    /** Helper to load the stored HTML into WebView using the HTML_TEMPLATE */
+    private void updateWebViewContent(String themeClass) {
+        if (rawHtmlContent != null && storyWebView != null && storyWebView.getEngine() != null) {
+            // Format the template with the chosen theme class and the raw story HTML
+            String styledHtml = String.format(HTML_TEMPLATE, themeClass, rawHtmlContent);
+            // Load the complete HTML string into the WebView
+            storyWebView.getEngine().loadContent(styledHtml);
+        } else if (storyWebView != null && storyWebView.getEngine() != null){
+            storyWebView.getEngine().loadContent("<html><body>Error: No content available to display.</body></html>");
         }
     }
 
-    // --- Helper methods for showing alerts ---
+    /** Helper to safely get the library path */
+    private Path getLibraryPath() {
+        try {
+            Path path = Paths.get(System.getProperty("user.home"), "AO3_Offline_Library");
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+            return path;
+        } catch (IOException e) {
+            showError("Could not access library directory: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Helper to safely get the stage */
+    private Stage getStage() {
+        if (storyWebView != null && storyWebView.getScene() != null) {
+            return (Stage) storyWebView.getScene().getWindow();
+        }
+        return null;
+    }
+
+    // --- Alert Helpers ---
     private void showInfo(String header, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information");

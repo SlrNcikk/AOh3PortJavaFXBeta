@@ -311,11 +311,17 @@ public class Ao3Controller {
             @Override
             protected String call() throws Exception {
                 final String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
-                Document doc = Jsoup.connect(work.getUrl() + "?view_full_work=true").userAgent(userAgent).get();
+                // Fetch the full work page
+                Document doc = Jsoup.connect(work.getUrl() + "?view_full_work=true")
+                        .userAgent(userAgent)
+                        .get();
+                // Select the main story content div
                 Element workskin = doc.selectFirst("#workskin");
-                if (workskin == null) return "Could not find story content. It might be a restricted work.";
-                workskin.select("p").prepend("\\n\\n");
-                return workskin.text().replace("\\n", "\n").trim();
+                if (workskin == null) {
+                    return "<html><body>Could not find story content. It might be a restricted work.</body></html>";
+                }
+                // Return the inner HTML of the workskin div
+                return workskin.html();
             }
         };
     }
